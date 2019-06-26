@@ -7,18 +7,19 @@ library(RFCDE)
 
 set.seed(42)
 
-#load("galsim/data/sdss_galaxies_1011-1020_2018.Rdata")
-load("galsim/data/SDSS_galaxies_full_2018.Rdata")
+#load("data/sdss/sdss_galaxies_1011-1020_2018.Rdata")
+load("data/sdss/SDSS_galaxies_full_2018.Rdata")
 
 ## train/test split
 n_train_gals <- 20000
 #train_ids <- sample(length(z), size = n_train_gals)
 #x <- flux
 #z <- as.matrix(z)
+
 train_ids <- sample(dim(z_vec)[1], size = n_train_gals)
 x <- flux_mat
 z <- z_vec
-outdir <- "galsim/"
+outdir <- "data/"
 
 ## Set methods
 methods <- list()

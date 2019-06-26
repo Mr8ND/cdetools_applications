@@ -7,7 +7,7 @@ import deepcde
 import sklearn.metrics
 import h5py
 
-run_name = "galsim-deepcde"
+run_name = "sdss-deepcde"
 
 # Parameters
 learning_rate = 1e-2
