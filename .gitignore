@@ -34,3 +34,16 @@ vignettes/*.pdf
 
 # Shiny token, see https://shiny.rstudio.com/articles/shinyapps.html
 rsconnect/
+
+# Data files
+photometric_redshift/Teddy/*
+photometric_redshift/data/*
+!photometric_redshift/data/.gitkeep
+
+galaxy_spectra/data/sdss/*
+galaxy_spectra/data/*
+!galaxy_spectra/data/.gitkeep
+
+# Old versions of DeepCDE
+photometric_redshift/deepcde/*
+galaxy_spectra/deepcde/*
