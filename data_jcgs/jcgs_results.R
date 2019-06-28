@@ -9,8 +9,11 @@ library(gridExtra)
 library(grid)
 library(ggpubr)
 library(reshape2)
+library(pracma)
 
 outdir <- "data/"
+save_plots <- FALSE
+file_run <- "results_with_flexcode.hdf5"
 
 grade_simulation <- function(resultsfile) {
   z_test <- h5read(resultsfile, "/z_true")
@@ -18,6 +21,7 @@ grade_simulation <- function(resultsfile) {
   
   methods <- h5ls(resultsfile, recursive = FALSE)$name
   methods <- methods[!methods %in% c("z_grid", "z_true")]
+  methods <- methods[!str_detect(methods, "mean")]
   
   return(ldply(methods, function(method) {
     preds <- h5read(resultsfile, paste0(method, "/cde"))
@@ -32,7 +36,7 @@ grade_simulation <- function(resultsfile) {
 }
 
 ## Grade individual simulations
-fname <- paste0(outdir, "results_with_flexcode.hdf5")
+fname <- paste0(outdir, file_run)
 df <- grade_simulation(fname)
 
 df$Method <- df$method
@@ -52,32 +56,34 @@ print(ascii(tbl, include.rownames = FALSE), type = "org")
 # CDE Examples ############################################################
 
 n_plots <- 10
-starting_idx <- 10
+sampled_idx <- sample(x = seq(500), size = n_plots)
 
-get_densities <- function(resultsfile) {
+get_densities <- function(resultsfile, sampled_idx) {
   z_test <- h5read(resultsfile, "/z_true")
   z_grid <- h5read(resultsfile, "/z_grid")
   
   methods <- h5ls(resultsfile, recursive = FALSE)$name
   methods <- methods[!methods %in% c("z_grid", "z_true")]
+  methods <- methods[!str_detect(methods, "mean")]
   
   return(ldply(methods, function(method) {
     cde <- h5read(resultsfile, paste0(method, "/cde"))
+    print(dim(cde[sampled_idx, ]))
     
     return(data.frame(Method = method,
-                      density = as.vector(cde[c(starting_idx:(starting_idx+n_plots-1)), ]),
+                      density = as.vector(cde[sampled_idx, ]),
                       y = rep(z_grid, each = n_plots),
                       id = rep(seq_len(n_plots), times = length(z_grid))))
   }))
 }
 
 
-fname <- paste0(outdir, "results_full.hdf5")
-densities <- get_densities(fname)
+fname <- paste0(outdir, file_run)
+densities <- get_densities(fname, sampled_idx)
 z_test <- h5read(fname, "/z_true")
-truth  <-  data.frame(z_test = z_test[c(starting_idx:(starting_idx+n_plots-1))],
+truth  <-  data.frame(z_test = z_test[sampled_idx],
                       id = seq_len(n_plots))
-methods <- c("Functional", "Vector")
+methods <- c("Functional", "Vector", "Flexcode-Spec")
 densities$Method <- factor(densities$Method, levels = methods)
 
 fig <- ggplot(NULL, aes(x = y, y = density)) +
@@ -86,9 +92,47 @@ fig <- ggplot(NULL, aes(x = y, y = density)) +
   facet_grid(Method ~ id) +
   xlab("z") + ylab("p(z | X)") +
   theme_minimal()
-ggsave(filename='images/cdes_examples.pdf', plot=fig, dpi=300)
+if (save_plots){
+  ggsave(filename='images/cdes_examples.pdf', plot=fig, dpi=300)  
+}
 print(fig)
 
+
+# Stacked CDEs ############################################################
+
+get_stacked_pz <- function(resultsfile) {
+  z_test <- h5read(resultsfile, "/z_true")
+  z_grid <- h5read(resultsfile, "/z_grid")
+  
+  methods <- h5ls(resultsfile, recursive = FALSE)$name
+  methods <- methods[!methods %in% c("z_grid", "z_true")]
+  methods <- methods[!str_detect(methods, "mean")]
+  
+  return(ldply(methods, function(method) {
+    cde <- h5read(resultsfile, paste0(method, "/cde"))
+    summed_cde <- apply(cde, MARGIN = 2, FUN = sum)
+    summed_cde <- summed_cde/ pracma::trapz(x=z_grid, y=summed_cde)
+    return(data.frame(Method = method,
+                      stacked_cde = summed_cde,
+                      z_grid = z_grid))
+  }))
+}
+
+fname <- paste0(outdir, file_run)
+df_pred <- get_stacked_pz(fname)
+z_test <- h5read(fname, "/z_true")
+dens_obj <- approxfun(density(z_test, bw='SJ'))
+
+fig_points <- ggplot(data=df_pred) +
+  geom_line(data=df_pred, aes(x=z_grid, y=stacked_cde)) + theme_minimal() +
+  facet_grid(. ~ Method) + 
+  geom_line(aes(x=z_grid, y=dens_obj(z_grid)), color='red') +
+  labs(y='Stacked p(z)', x='Redshift',
+       title='Stacked CDEs, 800 Test Galaxies, 2,000 Training Galaxies - from JCGS')
+if (save_plots){
+  ggsave(filename='images/stacked_cdes.pdf', plot=fig_points, dpi=300) 
+}
+print(fig_points)
 
 
 # Redshift Prediction function Examples ############################################################
@@ -99,26 +143,33 @@ get_predictions <- function(resultsfile) {
   
   methods <- h5ls(resultsfile, recursive = FALSE)$name
   methods <- methods[!methods %in% c("z_grid", "z_true")]
+  methods <- methods[!str_detect(methods, "mean")]
   
   return(ldply(methods, function(method) {
     cde <- h5read(resultsfile, paste0(method, "/cde"))
-    
+    if (grepl(pattern='mean', x=method)){
+      preds <- cde
+    } else {
+      preds <- apply(cde, MARGIN = 1, FUN = function(x) z_grid[which.max(x)])
+    }
     return(data.frame(Method = method,
-                      prediction = apply(cde, MARGIN = 1, FUN = function(x) z_grid[which.max(x)]),
+                      prediction = preds,
                       z_true = z_test))
   }))
 }
 
-fname <- paste0(outdir, "results_full.hdf5")
+fname <- paste0(outdir, file_run)
 df_pred <- get_predictions(fname)
 fig_points <- ggplot(data=df_pred,aes(z_true,prediction))+
-  geom_point(alpha=1) +  facet_grid(Method ~ .) +
+  geom_point(alpha=1) +  facet_grid(. ~ Method) +
   theme_minimal() + xlim(c(0, 0.2)) + ylim(c(0,0.2)) +
   geom_segment(aes(x=0, xend=0.2, y=0, yend=0.2), color='black', linetype='dashed') +
   labs(colour='Method', y='Predicted Redshift', x='True Redshift',
        title='Predicted vs. True Redshift, 800 Test Galaxies, 2,000 Training Galaxies - from JCGS') +
   theme(strip.text.y = element_text(size=18))
-ggsave(filename='images/photoz_predictions.pdf', plot=fig_points, dpi=300)
+if (save_plots){
+  ggsave(filename='images/photoz_predictions.pdf', plot=fig_points, dpi=300)
+}
 print(fig_points)
 
 
@@ -131,6 +182,7 @@ pval_simulation <- function(resultsfile) {
   
   methods <- h5ls(resultsfile, recursive = FALSE)$name
   methods <- methods[!methods %in% c("z_grid", "z_true")]
+  methods <- methods[!str_detect(methods, "mean")]
   
   return(ldply(methods, function(method) {
     cde <- h5read(resultsfile, paste0(method, "/cde"))
@@ -144,17 +196,19 @@ pval_simulation <- function(resultsfile) {
     }))
 }
 
-fname <- paste0(outdir, "results_full.hdf5")
+fname <- paste0(outdir, file_run)
 df_pval <- pval_simulation(fname)
 
-df_pval$Method <- factor(df_pval$Method, levels = c("Functional", "Vector"))
+df_pval$Method <- factor(df_pval$Method, levels = c("Functional", "Vector", 'Flexcode-Spec'))
 
 fig1 <- ggplot(df_pval, aes(x = pval, y = ..density..)) +
   geom_histogram() +
   facet_grid(Test ~ Method) + xlim(c(0,1)) +
   xlab("Values") + ylab("Density") +
   theme_minimal()
-ggsave(filename='images/values_hpd_pit.pdf', plot=fig1, dpi=300)
+if (save_plots){
+  ggsave(filename='images/values_hpd_pit.pdf', plot=fig1, dpi=300)
+}
 print(fig1)
 
 
@@ -184,7 +238,9 @@ fig2 <- ggplot(df_pp_plot, aes(x = theoretical_pval,
   facet_grid(test ~ method) +
   xlab("Theoretical Coverage") + ylab("Empirical Coverage") +
   theme_minimal()
-ggsave(filename='images/ppplots_hpd_pit.pdf', plot=fig2, dpi=300)
+if (save_plots){
+  ggsave(filename='images/ppplots_hpd_pit.pdf', plot=fig2, dpi=300)
+}
 print(fig2)
 
 

@@ -2,6 +2,7 @@ library(microbenchmark)
 library(rhdf5)
 library(plyr)
 library(FlexCoDE)
+library(ranger)
 
 #devtools::install_github("tpospisi/RFCDE/r", force=TRUE)
 library(RFCDE)
@@ -30,6 +31,45 @@ methods[["RFCDE"]] <- function(n_trees, nodesize, n_basis, mtry) {
               }))
 }
 
+methods[["RFCDE-mean"]] <- function(n_trees, nodesize, n_basis, mtry) {
+  return(list(name = "Vector-mean",
+              
+              "train" = function(x_train, z_train, x_valid, z_valid, z_grid) {
+                x_train = rbind(x_train, x_valid)
+                z_train = rbind(z_train, z_valid)
+                return(RFCDE::RFCDE(x_train = x_train, z_train = z_train,
+                                    n_trees = n_trees, node_size = nodesize, mtry = mtry,
+                                    n_basis = n_basis, min_loss_delta = 0.0, fit_oob = FALSE))
+              },
+              
+              "predict" = function(obj, x_test, z_grid) {
+                return(predict(obj, x_test, z_grid, response='mean'))
+              }))
+}
+
+methods[["rf-mean"]] <- function(n_trees, nodesize, n_basis, mtry) {
+  return(list(name = "ranger-rf",
+              
+              "train" = function(x_train, z_train, x_valid, z_valid, z_grid) {
+                x_train = rbind(x_train, x_valid)
+                z_train = rbind(z_train, z_valid)
+                
+                train_df <- as.data.frame(cbind(x_train, z_train))
+                names(train_df) <- make.names(c(as.character(seq(dim(train_df)[2] - 1)),
+                                    "target"))
+                
+                return(ranger(target  ~ ., data = train_df, 
+                                        num.trees = n_trees, mtry = mtry,
+                                        min.node.size = nodesize))
+              },
+              
+              "predict" = function(obj, x_test, z_grid) {
+                pred_df <- as.data.frame(x_test)
+                names(pred_df) <- make.names(as.character(seq(dim(pred_df)[2])))
+                return(predict(obj, pred_df)$predictions)
+              }))
+}
+
 methods[["fRFCDE"]] <- function(n_trees, nodesize, n_basis, mtry) {
   return(list(name = "Functional",
               
@@ -37,8 +77,8 @@ methods[["fRFCDE"]] <- function(n_trees, nodesize, n_basis, mtry) {
                 x_train = rbind(x_train, x_valid)
                 z_train = rbind(z_train, z_valid)
                 return(RFCDE::RFCDE(x_train = x_train, z_train = z_train, lens = ncol(x_train),
-                                     n_trees = n_trees, node_size = nodesize, mtry = mtry,
-                                     n_basis = n_basis, min_loss_delta = 0.0, fit_oob = FALSE, flambda = 50))
+                                    n_trees = n_trees, node_size = nodesize, mtry = mtry,
+                                    n_basis = n_basis, min_loss_delta = 0.0, fit_oob = FALSE, flambda = 50))
               },
               
               "predict" = function(obj, x_test, z_grid) {
@@ -55,9 +95,9 @@ methods[["Flexcode-Spec"]] <- function(n_basis) {
                                              zTrain = z_train,
                                              xValidation = x_valid,
                                              zValidation = z_valid,
-                                            regressionFunction = regressionFunction.Series,
-                                            nIMax = n_basis, system = 'cosine', zMin = min(z_grid),
-                                            zMax = max(z_grid)))
+                                             regressionFunction = regressionFunction.Series,
+                                             nIMax = n_basis, system = 'cosine', zMin = min(z_grid),
+                                             zMax = max(z_grid)))
               },
               
               "predict" = function(obj, x_test, z_grid) {
@@ -114,9 +154,13 @@ nodesize <- 20
 n_basis <- 31
 
 run_simulation(x_train, x_valid, x_test,
-               z_train, z_valid, z_test, "results_func_vec_flex.hdf5", list(
-  methods[["Flexcode-Spec"]](n_basis = n_basis),
-  methods[["RFCDE"]](n_trees = n_trees, nodesize = nodesize,
-                     n_basis = n_basis, mtry = 58),
-  methods[["fRFCDE"]](n_trees = n_trees, nodesize = nodesize,
-                     n_basis = n_basis, mtry = 8)))
+               z_train, z_valid, z_test, "results_full_mean.hdf5", list(
+                methods[["Flexcode-Spec"]](n_basis = n_basis),
+                methods[["RFCDE"]](n_trees = n_trees, nodesize = nodesize,
+                                   n_basis = n_basis, mtry = 58),
+                methods[["RFCDE-mean"]](n_trees = n_trees, nodesize = nodesize,
+                                   n_basis = n_basis, mtry = 58),
+                methods[["fRFCDE"]](n_trees = n_trees, nodesize = nodesize,
+                                   n_basis = n_basis, mtry = 8),
+                methods[["rf-mean"]](n_trees = n_trees, nodesize = nodesize,
+                                     n_basis = n_basis, mtry = 58)))
