@@ -40,6 +40,9 @@ photometric_redshift/Teddy/*
 photometric_redshift/data/*
 !photometric_redshift/data/.gitkeep
 
+data_jcgs/data/*
+!data_jcgs/data/.gitkeep
+
 galaxy_spectra/data/sdss/*
 galaxy_spectra/data/*
 !galaxy_spectra/data/.gitkeep
@@ -57,3 +60,6 @@ photometric_redshift/images/*
 
 galaxy_spectra/images/*
 !galaxy_spectra/images/.gitkeep
+
+data_jcgs/images/*
+!data_jcgs/images/.gitkeep
