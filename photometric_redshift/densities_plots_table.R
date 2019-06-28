@@ -9,12 +9,18 @@ library(gtable)
 library(gridExtra)
 library(grid)
 library(ggpubr)
+library(pracma)
+source('auxiliary_funcs.R')
 
 datadir <- "data/"
 n_plots <- 3
 methods <- c("RFCDE", "RFCDE-Limited", "FlexZBoost", "DeepCDE", "Marginal", "NNKCDE")
+save_plots <- FALSE
 
 # CDE EXAMPLES ########################################################
+n_plots <- 10
+sampled_idx <- sample(x = seq(500), size = n_plots)
+
 densities <- ldply(methods, function(method) {
   fname <- paste0(datadir, method, ".hdf5")
   
@@ -23,7 +29,7 @@ densities <- ldply(methods, function(method) {
   cde <- h5read(fname, "/cde")
   
   return(data.frame(Method = method,
-                    density = as.vector(cde[seq_len(n_plots), ]),
+                    density = as.vector(cde[sampled_idx, ]),
                     y = rep(y_grid, each = n_plots),
                     id = rep(seq_len(n_plots), times = length(y_grid))))
 })
@@ -31,7 +37,7 @@ densities <- ldply(methods, function(method) {
 method <- methods[1]
 fname <- paste0(datadir, method, ".hdf5")
 y_true <- h5read(fname, "/y_true")
-truth  <-  data.frame(y_true = y_true[seq_len(n_plots)],
+truth  <-  data.frame(y_true = y_true[sampled_idx],
                       id = seq_len(n_plots))
 
 densities$Method <- factor(densities$Method, levels = rev(methods))
@@ -42,6 +48,9 @@ fig <- ggplot(NULL, aes(x = y, y = density)) +
   facet_grid(Method ~ id) +
   xlab("z") + ylab("p(z | X)") +
   theme_minimal()
+if (save_plots){
+  ggsave(filename='images/cdes_examples.pdf', plot=fig, dpi=300)
+}
 print(fig)
 
 # P-values Figure #########################################################
@@ -65,8 +74,11 @@ df_pval$Method <- factor(df_pval$Method, levels = methods)
 fig <- ggplot(df_pval, aes(x = pval, y = ..density..)) +
   geom_histogram() +
   facet_grid(Test ~ Method) +
-  xlab("Values") + ylab("Density") +
+  xlab("Values") + ylab("Density") + xlim(c(0,1)) +
   theme_minimal()
+if (save_plots){
+  ggsave(filename='images/values_hpd_pit.pdf', plot=fig, dpi=300)
+}
 print(fig)
 
 
@@ -158,6 +170,9 @@ fig <- ggplot(df_pp_plot, aes(x = theoretical_pval,
   facet_grid(test ~ method) +
   xlab("Theoretical Coverage") + ylab("Empirical Coverage") +
   theme_minimal()
+if (save_plots){
+  ggsave(filename='images/ppplots_hpd_pit.pdf', plot=fig1, dpi=300)
+}
 print(fig)
 
 
@@ -236,7 +251,10 @@ df <- ldply(methods, function(method) {
   y_grid <- h5read(fname, "/y_grid")
   y_true <- h5read(fname, "/y_true")
   cde <- h5read(fname, "/cde")
-  
+  if (method == 'NNKCDE'){
+    cde <- t(apply(cde, MARGIN = 1, 
+                   FUN = function(x) normalize_density(y_grid[2] - y_grid[1], x)))
+  }
   loss <- cde_loss(cde, y_grid, y_true)
   
   return(data.frame(Method = method,
@@ -280,5 +298,80 @@ p1 + theme(plot.title = element_blank(),
            axis.title.y = element_text(size=26))
 
 
+# Stacked CDEs ############################################################
 
+
+df_stacked_pz <- ldply(methods, function(method) {
+  fname <- paste0(datadir, method, ".hdf5")
+  
+  y_grid <- h5read(fname, "/y_grid")
+  y_true <- h5read(fname, "/y_true")
+  cde <- h5read(fname, "/cde")
+  summed_cde <- apply(cde, MARGIN = 2, FUN = sum)
+  summed_cde <- summed_cde/ pracma::trapz(x=y_grid, y=summed_cde)
+  
+  return(data.frame(Method = method,
+                    stacked_cde = summed_cde,
+                    y_grid = y_grid))
+})
+
+
+method <- methods[1]
+fname <- paste0(datadir, method, ".hdf5")
+y_true <- h5read(fname, "/y_true")
+dens_obj <- approxfun(density(y_true, bw='SJ'))
+
+fig_points <- ggplot(data=df_stacked_pz) +
+  geom_line(aes(x=y_grid, y=stacked_cde)) + theme_minimal() +
+  facet_grid(. ~ Method) + 
+  geom_line(aes(x=y_grid, y=dens_obj(y_grid)), color='red') +
+  labs(y='Stacked p(z)', x='Redshift',
+       title='Stacked CDEs, 800 Test Galaxies, 2,000 Training Galaxies - from JCGS')
+if (save_plots){
+  ggsave(filename='images/stacked_cdes.pdf', plot=fig_points, dpi=300) 
+}
+print(fig_points)
+
+
+# Redshift Prediction function Examples ############################################################
+
+
+df_pred <- ldply(methods, function(method) {
+  fname <- paste0(datadir, method, ".hdf5")
+  
+  y_grid <- h5read(fname, "/y_grid")
+  y_true <- h5read(fname, "/y_true")
+  cde <- h5read(fname, "/cde")
+  preds <- apply(cde, MARGIN = 1, FUN = function(x) y_grid[which.max(x)])
+  
+  return(data.frame(Method = method,
+                    prediction = preds[seq(2500)],
+                    y_true = y_true[seq(2500)]))
+})
+
+
+fig_points <- ggplot(data=df_pred,aes(y_true,prediction))+
+  geom_point(alpha=1) +  facet_grid(. ~ Method) +
+  theme_minimal() + xlim(c(0, 0.75)) + ylim(c(0,0.75)) +
+  geom_segment(aes(x=0, xend=0.75, y=0, yend=0.75), color='black', linetype='dashed') +
+  labs(colour='Method', y='Predicted Redshift', x='True Redshift',
+       title='Predicted vs. True Redshift, 800 Test Galaxies, 2,000 Training Galaxies - from JCGS') +
+  theme(strip.text.y = element_text(size=18))
+if (save_plots){
+  ggsave(filename='images/photoz_predictions.pdf', plot=fig_points, dpi=300)
+}
+print(fig_points)
+
+df_pred_2d <- df_pred %>% filter(!Method %in% 'Marginal')
+fig_points <- ggplot(data=df_pred_2d, aes(x=y_true,y=prediction))+
+  geom_density_2d() +  facet_grid(. ~ Method) +
+  theme_minimal() + xlim(c(0, 0.75)) + ylim(c(0,0.75)) +
+  geom_segment(aes(x=0, xend=0.75, y=0, yend=0.75), color='black', linetype='dashed') +
+  labs(colour='Method', y='Predicted Redshift', x='True Redshift',
+       title='Predicted vs. True Redshift, 800 Test Galaxies, 2,000 Training Galaxies - from JCGS') +
+  theme(strip.text.y = element_text(size=18))
+if (save_plots){
+  ggsave(filename='images/photoz_predictions_2d.pdf', plot=fig_points, dpi=300)
+}
+print(fig_points)
 

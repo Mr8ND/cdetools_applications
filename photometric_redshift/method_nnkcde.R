@@ -1,6 +1,8 @@
 library(rhdf5)
 library(NNKCDE)
 library(plyr)
+library(pracma)
+source('auxiliary_funcs.R')
 
 datadir <- "data/"
 n_grid <- 200
@@ -43,7 +45,13 @@ x_test <- h5read(dataf, "/x_test")
 y_test <- h5read(dataf, "/y_test")
 
 obj <- train(x_train_nn, y_train_nn, x_valid, y_valid)
+print(c(obj$h, obj$k))
 cde <- pred(obj, x_test, y_grid)
+
+if (pracma::trapz(x = y_grid, y = cde[1,]) > 1.1){
+  cde <- t(apply(cde, MARGIN = 1, 
+                 FUN = function(x) normalize_density(y_grid[2] - y_grid[1], x)))
+}
 
 fname <- paste0(datadir, name, ".hdf5")
 if (file.exists(fname)) {
