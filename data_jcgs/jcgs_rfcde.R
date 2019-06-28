@@ -51,9 +51,10 @@ methods[["fRFCDE"]] <- function(n_trees, nodesize, n_basis, mtry) {
 methods[["Flexcode-Spec"]] <- function(n_basis) {
   return(list(name = "Flexcode-Spec",
               
-              "train" = function(x_train, z_train, z_grid, valid_size=400) {
+              "train" = function(x_train, z_train, z_grid, valid_perc=0.2) {
                 
                 perm <- sample(nrow(x_train))
+                valid_size <- as.integer(nrow(x_train) * valid_perc)
                 train_ids <- perm[1:(nrow(x_train) - valid_size)]
                 valid_ids <- perm[-(1:(nrow(x_train) - valid_size))][1:valid_size]
                 
@@ -127,7 +128,7 @@ nodesize <- 20
 n_basis <- 31
 n_test_gal <- 800
 
-run_simulation(n_train_gals, n_test_gal, "results_with_flexcode.hdf5", list(
+run_simulation(n_train_gals, n_test_gal, "results_func_vec_flex.hdf5", list(
   methods[["Flexcode-Spec"]](n_basis = n_basis),
   methods[["RFCDE"]](n_trees = n_trees, nodesize = nodesize,
                      n_basis = n_basis, mtry = 58),
