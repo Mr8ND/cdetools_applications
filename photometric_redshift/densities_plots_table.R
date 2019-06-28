@@ -34,7 +34,7 @@ y_true <- h5read(fname, "/y_true")
 truth  <-  data.frame(y_true = y_true[seq_len(n_plots)],
                       id = seq_len(n_plots))
 
-densities$Method <- factor(densities$Method, levels = methods)
+densities$Method <- factor(densities$Method, levels = rev(methods))
 
 fig <- ggplot(NULL, aes(x = y, y = density)) +
   geom_line(data = densities) +

@@ -47,3 +47,13 @@ galaxy_spectra/data/*
 # Old versions of DeepCDE
 photometric_redshift/deepcde/*
 galaxy_spectra/deepcde/*
+
+#PyCharm
+.idea/
+
+#Image Files
+photometric_redshift/images/*
+!photometric_redshift/images/.gitkeep
+
+galaxy_spectra/images/*
+!galaxy_spectra/images/.gitkeep

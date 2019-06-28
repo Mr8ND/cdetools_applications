@@ -84,8 +84,8 @@ run_simulation <- function(n_train, n_test, outfile, methods, n_grid = 1000) {
   z_test <- z[test_ids, , drop = FALSE]
   h5write(z_test, outfile, "/z_true")
   
-  z_min <- 0.05
-  z_max <- 1.0
+  z_min <- min(z_train)
+  z_max <- max(z_train)
   z_grid <- seq(z_min, z_max, length.out = n_grid)
   h5write(z_grid, outfile, "/z_grid")
   

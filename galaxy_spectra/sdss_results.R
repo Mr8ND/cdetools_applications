@@ -72,13 +72,13 @@ get_densities <- function(resultsfile) {
 }
 
 
-fname <- paste0(outdir, "results.hdf5")
+fname <- paste0(outdir, "results_full.hdf5")
 densities <- get_densities(fname)
-z_test <- h5read(resultsfile, "/z_true")
+z_test <- h5read(fname, "/z_true")
 truth  <-  data.frame(z_test = z_test[c(starting_idx:(starting_idx+n_plots-1))],
                       id = seq_len(n_plots))
 
-densities$Method <- factor(densities$Method, levels = methods)
+densities$Method <- factor(densities$Method, levels = c('Functional', 'Vector'))
 
 fig <- ggplot(NULL, aes(x = y, y = density)) +
   geom_line(data = densities) +
@@ -86,6 +86,7 @@ fig <- ggplot(NULL, aes(x = y, y = density)) +
   facet_grid(Method ~ id) +
   xlab("z") + ylab("p(z | X)") +
   theme_minimal()
+ggsave(filename='images/full/cdes_examples.pdf', plot=fig, dpi=300)
 print(fig)
 
 
@@ -115,8 +116,9 @@ fig_points <- ggplot(data=df_pred,aes(z_true,prediction))+
   theme_minimal() + xlim(c(0, 0.75)) + ylim(c(0,0.75)) +
   geom_segment(aes(x=0, xend=0.75, y=0, yend=0.75), color='black', linetype='dashed') +
   labs(colour='Method', y='Predicted Redshift', x='True Redshift',
-       title='Predicted vs. True Redshift, 1,000 SDSS Test Galaxies, 2,000 Training Galaxies') +
+       title='Predicted vs. True Redshift, 5,000 SDSS Test Galaxies, 20,000 Training Galaxies') +
   theme(strip.text.y = element_text(size=18))
+ggsave(filename='images/full/photoz_predictions.pdf', plot=fig_points, dpi=300)
 print(fig_points)
 
 
@@ -152,6 +154,7 @@ fig1 <- ggplot(df_pval, aes(x = pval, y = ..density..)) +
   facet_grid(Test ~ Method) + xlim(c(0,1)) +
   xlab("Values") + ylab("Density") +
   theme_minimal()
+ggsave(filename='images/full/values_hpd_pit.pdf', plot=fig1, dpi=300)
 print(fig1)
 
 
@@ -181,6 +184,7 @@ fig2 <- ggplot(df_pp_plot, aes(x = theoretical_pval,
   facet_grid(test ~ method) +
   xlab("Theoretical Coverage") + ylab("Empirical Coverage") +
   theme_minimal()
+ggsave(filename='images/full/ppplots_hpd_pit.pdf', plot=fig2, dpi=300)
 print(fig2)
 
 
