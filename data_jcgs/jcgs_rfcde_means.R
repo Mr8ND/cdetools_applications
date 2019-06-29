@@ -48,7 +48,7 @@ methods[["RFCDE-mean"]] <- function(n_trees, nodesize, n_basis, mtry) {
 }
 
 methods[["rf-mean"]] <- function(n_trees, nodesize, n_basis, mtry) {
-  return(list(name = "ranger-rf",
+  return(list(name = "ranger-rf-mean",
               
               "train" = function(x_train, z_train, x_valid, z_valid, z_grid) {
                 x_train = rbind(x_train, x_valid)
@@ -137,6 +137,7 @@ run_simulation <- function(x_train, x_valid, x_test,
   z_max <- max(z_train)
   z_grid <- seq(z_min, z_max, length.out = n_grid)
   h5write(z_grid, outfile, "/z_grid")
+  h5write(z_test, outfile, "/z_true")
   
   for (method in methods) {
     results <- run_method(method, x_train, z_train, x_valid, z_valid, z_grid, x_test)
@@ -155,7 +156,7 @@ nodesize <- 20
 n_basis <- 31
 
 run_simulation(x_train, x_valid, x_test,
-               z_train, z_valid, z_test, "results_full_mean_ex.hdf5", list(
+               z_train, z_valid, z_test, "results_full_mean.hdf5", list(
                 methods[["Flexcode-Spec"]](n_basis = n_basis),
                 methods[["RFCDE"]](n_trees = n_trees, nodesize = nodesize,
                                    n_basis = n_basis, mtry = 58),
