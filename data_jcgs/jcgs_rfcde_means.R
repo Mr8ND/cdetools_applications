@@ -90,7 +90,7 @@ methods[["Flexcode-Spec"]] <- function(n_basis) {
   return(list(name = "Flexcode-Spec",
               
               "train" = function(x_train, z_train, x_valid, z_valid, z_grid) {
-                
+                print('Training Flexcode')
                 return(FlexCoDE::fitFlexCoDE(xTrain = x_train, 
                                              zTrain = z_train,
                                              xValidation = x_valid,
@@ -113,7 +113,8 @@ run_method <- function(method, x_train, z_train, x_valid, z_valid, z_grid, x_tes
     method$train(x_train = x_train, z_train = z_train, 
                  x_valid = x_valid, z_valid = z_valid, z_grid = z_grid)
   })$time
-  trained <- method$train(x_train, z_train, z_grid)
+  trained <- method$train(x_train = x_train, z_train = z_train, 
+                          x_valid = x_valid, z_valid = z_valid, z_grid = z_grid)
   
   predict_times <- microbenchmark(times = best_of, {
     method$predict(trained, x_test, z_grid)
@@ -154,7 +155,7 @@ nodesize <- 20
 n_basis <- 31
 
 run_simulation(x_train, x_valid, x_test,
-               z_train, z_valid, z_test, "results_full_mean.hdf5", list(
+               z_train, z_valid, z_test, "results_full_mean_ex.hdf5", list(
                 methods[["Flexcode-Spec"]](n_basis = n_basis),
                 methods[["RFCDE"]](n_trees = n_trees, nodesize = nodesize,
                                    n_basis = n_basis, mtry = 58),
