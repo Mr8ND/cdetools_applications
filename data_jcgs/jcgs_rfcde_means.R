@@ -4,7 +4,7 @@ library(plyr)
 library(FlexCoDE)
 library(ranger)
 
-#devtools::install_github("tpospisi/RFCDE/r", force=TRUE)
+devtools::install_github("tpospisi/RFCDE/r", force=TRUE)
 library(RFCDE)
 
 set.seed(42)
@@ -156,13 +156,13 @@ nodesize <- 20
 n_basis <- 31
 
 run_simulation(x_train, x_valid, x_test,
-               z_train, z_valid, z_test, "results_full_mean.hdf5", list(
+               z_train, z_valid, z_test, "results_full_mean_server.hdf5", list(
                 methods[["Flexcode-Spec"]](n_basis = n_basis),
+                methods[["fRFCDE"]](n_trees = n_trees, nodesize = nodesize,
+                                    n_basis = n_basis, mtry = 8),
                 methods[["RFCDE"]](n_trees = n_trees, nodesize = nodesize,
                                    n_basis = n_basis, mtry = 58),
                 methods[["RFCDE-mean"]](n_trees = n_trees, nodesize = nodesize,
                                    n_basis = n_basis, mtry = 58),
-                methods[["fRFCDE"]](n_trees = n_trees, nodesize = nodesize,
-                                   n_basis = n_basis, mtry = 8),
                 methods[["rf-mean"]](n_trees = n_trees, nodesize = nodesize,
                                      n_basis = n_basis, mtry = 58)))
