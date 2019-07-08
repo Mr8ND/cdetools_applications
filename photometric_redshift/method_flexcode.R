@@ -10,9 +10,9 @@ y_grid <- seq(0, 1, length.out = n_grid)
 ###
 methods <- list()
 
-name <- "FlexZBoost"
+name <- "FlexZBoost_basis_search"
 train <-  function(x_train, y_train, x_val, y_val, y_grid) {
-  n_basis <- 31
+  n_basis <- 40
   system <- "cosine"
   obj <- fitFlexCoDE(xTrain = x_train, zTrain = y_train,
                      xValidation = x_valid, zValidation = y_valid,
@@ -57,5 +57,6 @@ if (file.exists(fname)) {
 
 h5createFile(fname)
 h5write(y_grid, file = fname, name = "/y_grid")
+h5write(obj$bestI, file = fname, name = "/best_base")
 h5write(y_test, file = fname, name = "/y_true")
 h5write(cde, file = fname, name = "/cde")

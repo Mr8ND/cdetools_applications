@@ -1,4 +1,6 @@
 library(rhdf5)
+
+devtools::install_github("tpospisi/RFCDE/r", force=TRUE)
 library(RFCDE)
 library(FlexCoDE)
 library(plyr)
@@ -21,7 +23,7 @@ train <- function(x_train, y_train, y_grid) {
                       n_basis = n_basis, min_loss_delta = 0.0, fit_oob = FALSE))
 }
 pred <- function(obj, x_test, y_grid) {
-  return(predict(obj, x_test, y_grid, response='CDE'))
+  return(predict(obj, x_test, y_grid, response='CDE', bandwidth='cv'))
 }
 
 ###
