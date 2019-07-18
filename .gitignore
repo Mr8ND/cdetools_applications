@@ -43,6 +43,9 @@ photometric_redshift/data/*
 data_jcgs/data/*
 !data_jcgs/data/.gitkeep
 
+lfi_example/data/*
+!lfi_example/data/.gitkeep
+
 galaxy_spectra/data/sdss/*
 galaxy_spectra/data/*
 !galaxy_spectra/data/.gitkeep
@@ -63,3 +66,6 @@ galaxy_spectra/images/*
 
 data_jcgs/images/*
 !data_jcgs/images/.gitkeep
+
+lfi_example/images/*
+!lfi_example/images/.gitkeep
