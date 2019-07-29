@@ -13,7 +13,7 @@ library(pracma)
 
 outdir <- "data/"
 save_plots <- FALSE
-file_run <- "results_rfcde_exploration_mtry_extreme_nbasis15.hdf5"
+file_run <- "results_rfcde_cv_full_withnaive.hdf5"
 
 grade_simulation <- function(resultsfile) {
   z_test <- h5read(resultsfile, "/z_true")
@@ -190,7 +190,7 @@ fig_points + theme(plot.title = element_blank(),
 df_pred_2d <- df_pred %>% filter(!Method %in% 'Marginal') %>%
                      filter(!str_detect(Method, "mean"))
 df_pred_2d$Method <- factor(df_pred_2d$Method, 
-                               levels=c('Vector', 'Functional', 'Flexcode-Spec'))
+                               levels=c('Vector', 'Functional', 'Flexcode-Spec', 'rfcde-naive'))
 fig_points <- ggplot(data=df_pred_2d, aes(x=z_true,y=prediction))+
   geom_abline(slope = 1, intercept = 0, linetype='dashed') +
   geom_density_2d() +  facet_grid(. ~ Method) +

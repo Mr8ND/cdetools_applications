@@ -14,7 +14,7 @@ source('auxiliary_funcs.R')
 
 datadir <- "data/"
 n_plots <- 3
-methods <- c("RFCDE", "DeepCDE", "FlexZBoost", "NNKCDE", "RFCDE-Limited", "Marginal")
+methods <- c("RFCDE", "RFCDE-naive", "DeepCDE", "FlexZBoost", "NNKCDE", "RFCDE-Limited", "Marginal")
 save_plots <- FALSE
 
 # Method Table ##############################################################
@@ -45,7 +45,7 @@ tbl <- df[, c("Method", "CDE Loss (SE)")]
 print(ascii(tbl, include.rownames = FALSE), type = "org")
 
 # Figure
-method_names <- c("RFCDE", "DeepCDE", "FlexZBoost", "NNKCDE", "RFCDE-Limited",
+method_names <- c("RFCDE", "RFCDE-naive", "DeepCDE", "FlexZBoost", "NNKCDE", "RFCDE-Limited",
                   "Marginal")
 method_names <- factor(df$Method, levels = rev(method_names))
 values <- df$loss
@@ -204,7 +204,7 @@ ggarrange(p1_plot + xlab('Value\n\n (a)') + theme(plot.title = element_text(hjus
 # PPplot Figure ##############################################################
 
 test_vec <- c('HPD', 'PIT')
-methods <- c("RFCDE", "RFCDE-Limited", "FlexZBoost", "DeepCDE", "Marginal", "NNKCDE")
+methods <- c("RFCDE", "RFCDE-naive", "RFCDE-Limited", "FlexZBoost", "DeepCDE", "Marginal", "NNKCDE")
 run_params <- expand.grid(test = test_vec,
                           method = methods)
 

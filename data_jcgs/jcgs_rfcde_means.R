@@ -31,6 +31,27 @@ methods[["RFCDE"]] <- function(n_trees, nodesize, n_basis, mtry) {
               }))
 }
 
+
+methods[["RFCDE-naive"]] <- function(n_trees, nodesize, n_basis, mtry) {
+  return(list(name = "rfcde-naive",
+              "train" = function(x_train, z_train, x_valid, z_valid, z_grid) {
+                x_train = rbind(x_train, x_valid)
+                z_train = rbind(z_train, z_valid)
+                return(quantregForest::quantregForest(x_train, z_train, 
+                                                      mtry = mtry,
+                                                      nodesize = nodesize,
+                                                      n_trees = n_trees))
+              },
+              
+              "predict" = function(obj, x_test, z_grid) {
+                kde_density <- function(x) {
+                  return(ks::kde(x, eval.points = z_grid)$estimate)
+                }
+                
+                return(predict(obj, x_test, what = kde_density))
+              }))
+}
+
 methods[["RFCDE-mean"]] <- function(n_trees, nodesize, n_basis, mtry) {
   return(list(name = "Vector-mean",
               
@@ -156,7 +177,7 @@ nodesize <- 20
 n_basis <- 31
 
 run_simulation(x_train, x_valid, x_test,
-               z_train, z_valid, z_test, "results_rfcde_cv_full.hdf5", list(
+               z_train, z_valid, z_test, "results_rfcde_cv_full_withnaive.hdf5", list(
                 methods[["Flexcode-Spec"]](n_basis = n_basis),
                 methods[["fRFCDE"]](n_trees = n_trees, nodesize = nodesize,
                                     n_basis = n_basis, mtry = 8),
@@ -165,4 +186,6 @@ run_simulation(x_train, x_valid, x_test,
                 methods[["RFCDE-mean"]](n_trees = n_trees, nodesize = nodesize,
                                    n_basis = n_basis, mtry = 58),
                 methods[["rf-mean"]](n_trees = n_trees, nodesize = nodesize,
-                                     n_basis = n_basis, mtry = 58)))
+                                     n_basis = n_basis, mtry = 58),
+                methods[["RFCDE-naive"]](n_trees = n_trees, nodesize = nodesize,
+                                      n_basis = n_basis, mtry = 58)))
