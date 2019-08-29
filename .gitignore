@@ -40,11 +40,21 @@ photometric_redshift/Teddy/*
 photometric_redshift/data/*
 !photometric_redshift/data/.gitkeep
 
+photometric_redshift_teddy/Teddy/*
+photometric_redshift_teddy/data/*
+!photometric_redshift_teddy/data/.gitkeep
+
 data_jcgs/data/*
 !data_jcgs/data/.gitkeep
 
+spec_z_estimation/data/*
+!spec_z_estimation/data/.gitkeep
+
 lfi_example/data/*
 !lfi_example/data/.gitkeep
+
+lfi_cosmological_inference/data/*
+!lfi_cosmological_inference/data/.gitkeep
 
 galaxy_spectra/data/sdss/*
 galaxy_spectra/data/*

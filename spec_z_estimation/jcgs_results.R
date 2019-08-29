@@ -13,7 +13,7 @@ library(pracma)
 
 outdir <- "data/"
 save_plots <- FALSE
-file_run <- "results_rfcde_cv_full_withnaive.hdf5"
+file_run <- "results_rfcde_cv_full_withnaive_freshrun.hdf5"
 
 grade_simulation <- function(resultsfile) {
   z_test <- h5read(resultsfile, "/z_true")
@@ -196,7 +196,7 @@ fig_points <- ggplot(data=df_pred_2d, aes(x=z_true,y=prediction))+
   geom_density_2d() +  facet_grid(. ~ Method) +
   theme_minimal() + xlim(c(0.1, 0.75)) + ylim(c(0.1,0.75)) +
   labs(colour='Method', y='Predicted Redshift', x='True Redshift') +
-  theme(strip.text.y = element_text(size=18))
+  theme(strip.text.y = element_text(size=18)) 
 if (save_plots){
   ggsave(filename='images/photoz_predictions_2d.pdf', plot=fig_points, dpi=300)
 }

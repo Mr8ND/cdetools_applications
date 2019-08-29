@@ -14,7 +14,7 @@ source('auxiliary_funcs.R')
 
 datadir <- "data/"
 n_plots <- 3
-methods <- c("RFCDE", "RFCDE-naive", "DeepCDE", "FlexZBoost", "NNKCDE", "RFCDE-Limited", "Marginal")
+methods <- c("RFCDE", "DeepCDE", "FlexZBoost", "NNKCDE", "RFCDE-Limited", "Marginal")
 save_plots <- FALSE
 
 # Method Table ##############################################################
@@ -45,7 +45,7 @@ tbl <- df[, c("Method", "CDE Loss (SE)")]
 print(ascii(tbl, include.rownames = FALSE), type = "org")
 
 # Figure
-method_names <- c("RFCDE", "RFCDE-naive", "DeepCDE", "FlexZBoost", "NNKCDE", "RFCDE-Limited",
+method_names <- c("RFCDE", "DeepCDE", "FlexZBoost", "NNKCDE", "RFCDE-Limited",
                   "Marginal")
 method_names <- factor(df$Method, levels = rev(method_names))
 values <- df$loss
@@ -64,11 +64,12 @@ p1 <- ggplot(df_plot, aes(x=model, y=cde_loss)) +
   theme_bw()
 
 p1 + theme(plot.title = element_blank(),
-           axis.title.x = element_text(size=26),
-           axis.text.x = element_text(size=22, margin = ggplot2::margin(b=15)),
-           axis.text.y = element_text(size=18),
-           axis.title.y = element_text(size=26))
-
+           axis.title.x = element_text(size=29),
+           axis.text.x = element_text(size=24,
+                                      margin = ggplot2::margin(b=15)),
+           axis.text.y = element_text(size=20),
+           axis.title.y = element_text(size=29))
+#13.71 X 7.76
 
 # CDE EXAMPLES ########################################################
 n_plots <- 8
@@ -354,7 +355,7 @@ df_pred <- ldply(methods, function(method) {
                     y_true = y_true))
 })
 
-methods <- c("RFCDE", "DeepCDE", "FlexZBoost", "NNKCDE", "RFCDE-Limited", "Marginal")
+methods <- c("RFCDE", "RFCDE-naive", "DeepCDE", "FlexZBoost", "NNKCDE", "RFCDE-Limited", "Marginal")
 df_pred$Method <- factor(df_pred$Method, levels = rev(methods))
 
 fig_points <- ggplot(data=df_pred,aes(y_true,prediction))+
@@ -418,7 +419,7 @@ df_pred_metrics <- ldply(methods, function(method) {
                     y_true = y_true))
 })
 
-methods <- c("RFCDE", "DeepCDE", "FlexZBoost", "NNKCDE", "RFCDE-Limited", "Marginal")
+methods <- c("RFCDE", "RFCDE-naive", "DeepCDE", "FlexZBoost", "NNKCDE", "RFCDE-Limited", "Marginal")
 df_pred_metrics$Method <- factor(df_pred_metrics$Method, levels = rev(methods))
 
 
