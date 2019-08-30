@@ -7,8 +7,8 @@ this is in contrast to approaches which model each component separately,
 implicitly introducing an assumption of conditional independence. 
 We use an example of LFI for simulated weak lensing shear data to show how NNKCDE 
 and RFCDE can capture more challenging bivariate distributions with curved structures; 
-in this toy example $\y$ represents cosmological parameters $(\Omega_M, \sigma_8)$ 
-in the $\Lambda$CDM-model, and $\x$ represents (coarsely binned) weak lensing 
+in this toy example y represents cosmological parameters (\Omega_M, \sigma_8) 
+in the LambdaCDM model, and x represents (coarsely binned) weak lensing 
 shear correlation functions.
 
 <br>

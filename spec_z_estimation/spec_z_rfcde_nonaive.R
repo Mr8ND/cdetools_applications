@@ -2,7 +2,6 @@ library(microbenchmark)
 library(rhdf5)
 library(plyr)
 library(FlexCoDE)
-library(ranger)
 
 #devtools::install_github("tpospisi/RFCDE/r", force=TRUE)
 library(RFCDE)
@@ -27,28 +26,7 @@ methods[["RFCDE"]] <- function(n_trees, nodesize, n_basis, mtry) {
               },
               
               "predict" = function(obj, x_test, z_grid) {
-                return(predict(obj, x_test, z_grid, response='CDE', bandwidth='cv'))
-              }))
-}
-
-
-methods[["RFCDE-naive"]] <- function(n_trees, nodesize, n_basis, mtry) {
-  return(list(name = "rfcde-naive",
-              "train" = function(x_train, z_train, x_valid, z_valid, z_grid) {
-                x_train = rbind(x_train, x_valid)
-                z_train = rbind(z_train, z_valid)
-                return(quantregForest::quantregForest(x_train, z_train, 
-                                                      mtry = mtry,
-                                                      nodesize = nodesize,
-                                                      n_trees = n_trees))
-              },
-              
-              "predict" = function(obj, x_test, z_grid) {
-                kde_density <- function(x) {
-                  return(ks::kde(x, eval.points = z_grid)$estimate)
-                }
-                
-                return(predict(obj, x_test, what = kde_density))
+                return(predict(obj, x_test, z_grid, response='CDE'))
               }))
 }
 
@@ -59,12 +37,12 @@ methods[["fRFCDE"]] <- function(n_trees, nodesize, n_basis, mtry) {
                 x_train = rbind(x_train, x_valid)
                 z_train = rbind(z_train, z_valid)
                 return(RFCDE::RFCDE(x_train = x_train, z_train = z_train, lens = ncol(x_train),
-                                    n_trees = n_trees, node_size = nodesize, mtry = mtry,
-                                    n_basis = n_basis, min_loss_delta = 0.0, fit_oob = FALSE, flambda = 50))
+                                     n_trees = n_trees, node_size = nodesize, mtry = mtry,
+                                     n_basis = n_basis, min_loss_delta = 0.0, fit_oob = FALSE, flambda = 50))
               },
               
               "predict" = function(obj, x_test, z_grid) {
-                return(predict(obj, x_test, z_grid, response='CDE', bandwidth='cv'))
+                return(predict(obj, x_test, z_grid, response='CDE'))
               }))
 }
 
@@ -72,14 +50,14 @@ methods[["Flexcode-Spec"]] <- function(n_basis) {
   return(list(name = "Flexcode-Spec",
               
               "train" = function(x_train, z_train, x_valid, z_valid, z_grid) {
-                print('Training Flexcode')
+                
                 return(FlexCoDE::fitFlexCoDE(xTrain = x_train, 
                                              zTrain = z_train,
                                              xValidation = x_valid,
                                              zValidation = z_valid,
-                                             regressionFunction = regressionFunction.Series,
-                                             nIMax = n_basis, system = 'cosine', zMin = min(z_grid),
-                                             zMax = max(z_grid)))
+                                            regressionFunction = regressionFunction.Series,
+                                            nIMax = n_basis, system = 'cosine', zMin = min(z_grid),
+                                            zMax = max(z_grid)))
               },
               
               "predict" = function(obj, x_test, z_grid) {
@@ -95,8 +73,7 @@ run_method <- function(method, x_train, z_train, x_valid, z_valid, z_grid, x_tes
     method$train(x_train = x_train, z_train = z_train, 
                  x_valid = x_valid, z_valid = z_valid, z_grid = z_grid)
   })$time
-  trained <- method$train(x_train = x_train, z_train = z_train, 
-                          x_valid = x_valid, z_valid = z_valid, z_grid = z_grid)
+  trained <- method$train(x_train, z_train, z_grid)
   
   predict_times <- microbenchmark(times = best_of, {
     method$predict(trained, x_test, z_grid)
@@ -119,7 +96,6 @@ run_simulation <- function(x_train, x_valid, x_test,
   z_max <- max(z_train)
   z_grid <- seq(z_min, z_max, length.out = n_grid)
   h5write(z_grid, outfile, "/z_grid")
-  h5write(z_test, outfile, "/z_true")
   
   for (method in methods) {
     results <- run_method(method, x_train, z_train, x_valid, z_valid, z_grid, x_test)
@@ -138,11 +114,9 @@ nodesize <- 20
 n_basis <- 31
 
 run_simulation(x_train, x_valid, x_test,
-               z_train, z_valid, z_test, "results_rfcde.hdf5", list(
-                methods[["Flexcode-Spec"]](n_basis = n_basissis),
-                methods[["fRFCDE"]](n_trees = n_trees, nodesize = nodesize,
-                                    n_basis = n_basis, mtry = 8),
-                methods[["RFCDE"]](n_trees = n_trees, nodesize = nodesize,
-                                   n_basis = n_basis, mtry = 58),
-                methods[["RFCDE-naive"]](n_trees = n_trees, nodesize = nodesize,
-                                      n_basis = n_basis, mtry = 58)))
+               z_train, z_valid, z_test, "results_func_vec_flex.hdf5", list(
+  methods[["Flexcode-Spec"]](n_basis = n_basis),
+  methods[["RFCDE"]](n_trees = n_trees, nodesize = nodesize,
+                     n_basis = n_basis, mtry = 58),
+  methods[["fRFCDE"]](n_trees = n_trees, nodesize = nodesize,
+                     n_basis = n_basis, mtry = 8)))

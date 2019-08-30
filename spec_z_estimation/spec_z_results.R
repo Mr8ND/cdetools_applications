@@ -13,7 +13,7 @@ library(pracma)
 
 outdir <- "data/"
 save_plots <- FALSE
-file_run <- "results_rfcde_cv_full_withnaive_freshrun.hdf5"
+file_run <- "results_rfcde.hdf5"
 
 grade_simulation <- function(resultsfile) {
   z_test <- h5read(resultsfile, "/z_true")
