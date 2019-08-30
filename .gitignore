@@ -48,6 +48,7 @@ lfi_cosmological_inference/lensing-figure.R
 photometric_redshift_teddy/deepcde/*
 photometric_redshift_teddy/images/*
 !photometric_redshift_teddy/images/.gitkeep
+photometric_redshift_teddy/method_bash_nnkcde.R
 
 spec_z_estimation/images/*
 !spec_z_estimation/images/.gitkeep
