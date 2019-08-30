@@ -3,11 +3,12 @@ library(RFCDE)
 library(FlexCoDE)
 library(plyr)
 
+##### Setup Variables for Predicition
 datadir <- "data/"
 n_grid <- 200
 y_grid <- seq(0, 1, length.out = n_grid)
 
-###
+##### Setup Method
 methods <- list()
 
 name <- "FlexZBoost_basis_search"
@@ -27,7 +28,7 @@ pred <- function(obj, x_test, y_grid) {
   return(predict(obj, x_test, B = n_grid)$CDE)
 }
 
-###
+#### Setup output file and run method
 dataf <- paste0(datadir, "processed.hdf5")
 x_train <- h5read(dataf, "/x_train")
 y_train <- h5read(dataf, "/y_train")

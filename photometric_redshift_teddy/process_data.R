@@ -1,7 +1,9 @@
 library(rhdf5)
 
-datadir <- "Teddy/"
+datadir <- "Teddy/" # Name of the folder where Teddy data are
 
+#### Defining functions for selecting covariates and response
+#### and dividing training and testing
 process_data <- function(fname) {
   dat <- read.table(fname, skip = 7, header = FALSE)
   x <- as.matrix(dat[, 8:12])
@@ -18,12 +20,15 @@ test_data <- process_data(paste0(datadir, "teddy_B"))
 x_test <- test_data$x
 y_test <- test_data$y
 
+
+#### Output saving function
 datadir_out <- 'data/'
 fname <- paste0(datadir_out, "processed.hdf5")
 if (file.exists(fname)) {
   file.remove(fname)
 }
 
+#### Run and save train and test sets
 h5createFile(fname)
 h5write(x_train, file = fname, name = "/x_train")
 h5write(y_train, file = fname, name = "/y_train")

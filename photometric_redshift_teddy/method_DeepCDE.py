@@ -81,8 +81,8 @@ marginal_beta = y_train_basis.mean(axis=0)
 y1 = relu_layer(x, n_hidden, weight_sd, initial_bias)
 y2 = relu_layer(y1, n_hidden*2, weight_sd, initial_bias)
 y3 = relu_layer(y2, n_hidden, weight_sd, initial_bias)
-beta = deepcde.cde_layer(y3, weight_sd, np.float32(marginal_beta))
-loss = deepcde.cde_loss(beta, y_basis, shrink_factor)
+beta = deepcde.deepcde_tensorflow.cde_layer(y3, weight_sd, np.float32(marginal_beta))
+loss = deepcde.deepcde_tensorflow.cde_loss(beta, y_basis, shrink_factor)
 
 optimizer = tf.train.AdamOptimizer(learning_rate).minimize(loss)
 
@@ -109,7 +109,7 @@ with tf.Session() as sess:
                 write.add_summary(sess.run(training_loss, feed_dict=train_dict), epoch)
                 write.add_summary(sess.run(test_loss, feed_dict=test_dict), epoch)
                         
-        cdes = deepcde.cde_predict(sess, beta, y_min, y_max, y_grid, y_grid_basis,
+        cdes = deepcde.deepcde_tensorflow.cde_predict(sess, beta, y_min, y_max, y_grid, y_grid_basis,
                                                    test_dict)
 
         ## Write out to file

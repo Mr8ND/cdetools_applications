@@ -4,11 +4,13 @@ library(plyr)
 library(pracma)
 source('auxiliary_funcs.R')
 
+
+##### Setup Variables for Predicition
 datadir <- "data/"
 n_grid <- 200
 y_grid <- seq(0, 1, length.out = n_grid)
 
-###
+##### Setup Method
 methods <- list()
 
 name <- "NNKCDE"
@@ -24,7 +26,7 @@ pred <- function(obj, x_test, y_grid) {
   return(obj$predict(x_test, y_grid))
 }
 
-###
+#### Setup output file and run method
 dataf <- paste0(datadir, "processed.hdf5")
 x_train <- h5read(dataf, "/x_train")
 y_train <- h5read(dataf, "/y_train")
