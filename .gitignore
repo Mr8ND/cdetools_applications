@@ -39,6 +39,20 @@ rsconnect/
 photometric_redshift/Teddy/*
 photometric_redshift/data/*
 !photometric_redshift/data/.gitkeep
+galaxy_spectra/
+
+lfi_cosmological_inference/images/*
+!lfi_cosmological_inference/images/.gitkeep
+lfi_cosmological_inference/lensing-figure.R
+
+photometric_redshift_teddy/deepcde/*
+photometric_redshift_teddy/images/*
+!photometric_redshift_teddy/images/.gitkeep
+
+spec_z_estimation/images/*
+!spec_z_estimation/images/.gitkeep
+spec_z_estimation/jcgs_rfcde_exploration.R
+spec_z_estimation/jcgs_rfcde_preds.R
 
 photometric_redshift_teddy/Teddy/*
 photometric_redshift_teddy/data/*
