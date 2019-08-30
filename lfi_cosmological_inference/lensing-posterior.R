@@ -8,18 +8,17 @@ library(NNKCDE)
 library(RFCDE)
 library(cdetools)
 
+#### Setting up variables and data folders
 data_file <- "data/data.csv"
 dat <- read.csv(data_file)
 n_draw <- nrow(dat) - 1
 n_train <- 1000
 n_validation <- 1000
 n_grid <- 30
-
-accepts <- c(0.2, 0.5, 1.0)
-
 set.seed(42)
+accepts <- c(0.2, 0.5, 1.0)  # ABC acceptance thresholds
 
-## Read in data
+#### Read in data
 x_obs <- as.vector(dat[1, paste0("X", 1:20)])
 z_obs <- dat[1, c("omega_m", "sigma_8")]
 dat <- dat[-1, ]
@@ -77,6 +76,7 @@ df <- ldply(accepts, function(accept) {
                  get_density("RFCDE", rfcde_density)))
 })
 
+
 alpha <- .55
 accept <- min(accepts)
 
@@ -91,6 +91,7 @@ alpha <- -coef(mod)[2]
 df$accept_plot <- factor(paste0((df$accept)*100, '%'), 
                          levels = c('20%', '50%', '100%'))
 
+#### Creating output Figure
 fig <- ggplot(df, aes(x = x, y = y, z = density, color = name)) +
     geom_contour(aes(alpha = ..level..), lwd = 1) +
     stat_function(fun = function(x) degen * x ^ -alpha, lty = 2) +
@@ -109,10 +110,11 @@ fig +  theme(plot.title = element_blank(),
              strip.text.x = element_text(size=20),
              strip.text.y = element_text(size=20)) + coord_fixed()
 
-## ggsave("../figures/lensing-posterior.pdf", fig, device = cairo_pdf)
 
+#### The following code calculate HPD coverages and CDE losses for the 
+#### methods above.
 
-### HPD COVERAGE
+#### HPD COVERAGE
 
 
 df_val <- ldply(accepts, function(accept) {
@@ -214,7 +216,7 @@ ggsave("images/joint_lensing_pval.pdf", final_plot, device = cairo_pdf,
        height=10, width=20)
 
 
-### CDE LOSS
+#### CDE LOSS
 
 df_loss <- ldply(accepts, function(accept) {
   ## Take abc samples
