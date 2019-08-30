@@ -54,6 +54,8 @@ spec_z_estimation/images/*
 !spec_z_estimation/images/.gitkeep
 spec_z_estimation/spec_z_rfcde_exploration.R
 spec_z_estimation/spec_z_rfcde_preds.R
+spec_z_rfcde_nonaive.R
+spec_z_rfcde_old.R
 
 photometric_redshift_teddy/Teddy/*
 photometric_redshift_teddy/data/*

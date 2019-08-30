@@ -21,9 +21,9 @@ and the response the galaxy's redshift z.
 for details about the data;
 * Once the data are available, say in the `data` folder, run `spec_z_preprocess.R` to apply
 Gaussian noise and split between training and testing;
-* Run `lensing_posterior.R`, setting the `data_file` variable to reflect location of the
-data in use;
-* Code to obtain the figure, CDE Loss and also HPD coverage histograms is included
-in `lensing_posterior.R`.
+* Run `spec_z_rfcde` to run all the 4 methods - RFCDE, fRFCDE, RFCDE "naive" 
+(Random forest + KDE) and Flexcode-Series;
+* Run `spec_z_results.R` to reproduce the figures in the paper, along with other interesting
+visualizations.
 
 
