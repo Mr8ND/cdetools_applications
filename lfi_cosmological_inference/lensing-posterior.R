@@ -7,6 +7,7 @@ library(ascii)
 library(NNKCDE)
 library(RFCDE)
 library(cdetools)
+library(tidyverse)
 
 #### Setting up variables and data folders
 data_file <- "data/data.csv"
@@ -91,10 +92,17 @@ alpha <- -coef(mod)[2]
 df$accept_plot <- factor(paste0((df$accept)*100, '%'), 
                          levels = c('20%', '50%', '100%'))
 
+z_obs_plot <- z_obs %>%
+  mutate(count = 3 * 3) %>% 
+  uncount(count) %>%
+  mutate(name=rep(c("ABC", "NNKCDE", "RFCDE"), 3),
+         accpet_plot = rep(c('20%', '50%', '100%'), each=3))
+
 #### Creating output Figure
-fig <- ggplot(df, aes(x = x, y = y, z = density, color = name)) +
-    geom_contour(aes(alpha = ..level..), lwd = 1) +
-    stat_function(fun = function(x) degen * x ^ -alpha, lty = 2) +
+fig <- ggplot() +
+    geom_contour(aes(x = x, y = y, z = density, color = name, alpha = ..level..), lwd = 1, data=df) +
+    stat_function(fun = function(x) degen * x ^ -alpha, lty = 2, data=df) +
+    geom_point(aes(x=omega_m, y=sigma_8), shape=18, color='black', size=4, data = z_obs_plot) +
     xlim(0.1, 0.8) + ylim(0.5, 1.0) +
     facet_grid(name ~ accept_plot) +
     xlab(TeX("$\\Omega_{M}$")) + ylab(TeX("$\\sigma_{8}$")) +
