@@ -250,7 +250,7 @@ p1_plot <- ggplot(panel1_df,
   geom_segment(aes(x=0, xend=1, y=0, yend=1), color='red', linetype='dashed', size=1) +
   ylim(c(0,1)) +
   facet_grid(test ~ method) +
-  xlab("Theoretical Coverage") + ylab("Empirical Coverage") +
+  xlab("Theoretical Distribution") + ylab("Empirical Distribution") +
   theme_minimal()
 
 p1_plot + theme(plot.title = element_blank(),
@@ -272,7 +272,7 @@ p2_plot <- ggplot(panel2_df,
   geom_segment(aes(x=0, xend=1, y=0, yend=1), color='red', linetype='dashed', size=1) +
   ylim(c(0,1)) +
   facet_grid(test ~ method) +
-  xlab("Theoretical Coverage") + ylab("Empirical Coverage") +
+  xlab("Theoretical Distribution") + ylab("Empirical Distribution") +
   theme_minimal()
 p2_plot + theme(plot.title = element_blank(),
                 axis.title.x = element_text(size=22),
@@ -283,7 +283,7 @@ p2_plot + theme(plot.title = element_blank(),
                 strip.text.y = element_text(size=22))
 
 
-ggarrange(p1_plot + xlab("Theoretical Coverage \n\n (c)") + theme(plot.title = element_blank(),
+ggarrange(p1_plot + xlab("Theoretical Distribution \n\n (c)") + theme(plot.title = element_blank(),
                           axis.title.x = element_text(size=22),
                           axis.text.x = element_text(size=10,
                                                      margin=ggplot2::margin(b=10)),
@@ -292,7 +292,7 @@ ggarrange(p1_plot + xlab("Theoretical Coverage \n\n (c)") + theme(plot.title = e
                           axis.title.y = element_text(size=22),
                           strip.text.x = element_text(size=22),
                           strip.text.y = element_blank()),
-          p2_plot +xlab("Theoretical Coverage \n\n (d)") + theme(plot.title = element_blank(),
+          p2_plot +xlab("Theoretical Distribution \n\n (d)") + theme(plot.title = element_blank(),
                           axis.title.x = element_text(size=22),
                           axis.text.x = element_text(size=10,
                                                      margin=ggplot2::margin(b=10)),
